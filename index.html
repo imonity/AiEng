@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Boost English</title>
+	<style>
+		.answer {
+			margin-bottom: 1em;
+		}
+		.answer__en {}
+		.answer__en--red {
+			color: crimson;
+		}
+		.answer__en--green {
+			color: green
+		;}
+		.Answer__Wrong {
+			color: dimgrey;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="app-container">
+		<div class="question-answer js-question-form">
+			Переведи: <div class="question-answer__question"></div>
+			<form class="js-answer-form" autocomplete="off">
+				<input type="phrase" name="answer" class="question-answer__answer-input js-answer-input">
+			</form>
+			<div class="question-answer__success js-answer-success">Ты знаешь, супер!</div>
+			<div class="question-answer__fail js-answer-fail">Не совпало, вот ответ: <span class="question-answer__correct-answer js-correct-answer"></span></div>
+		</div>
+		<h2>Прогресс</h2>
+		<div class="answers js-answers">
+			<!-- <div class="answer">
+				<div class="answer__ru"></div><div class="answer__en"></div>
+			</div> -->
+		</div>
+	</div>
+<script>
+let pairs = [
+	{ 'ru' : "Как тебя зовут?", 'en' : 'What is your name?' },
+	{ 'ru' : "Сколько тебе лет?", 'en' : 'How old are you?' },
+	{ 'ru' : "Как дела?", 'en' : 'How are you?' },
+	{ 'ru' : "200 долларов", 'en' : '$200' },
+	{ 'ru' : "Я встаю в 6:00", 'en' : "I get up at 6 AM"},
+	{ 'ru' : "Мы встретимся в 19:00", 'en' : "We'll meet at 7 p.m."},
+];
+
+class BoosterApp {
+
+	constructor(components) {
+		this.components = components;
+		console.log('constructor', components);
+        this.i = 0;
+		this.answersDiv = document.querySelector('.answers')
+	}
+
+	run() {
+		console.log('RUN!!!');
+		this.components.questionForm.ask(pairs[0], this);
+	}
+  
+    afterAnswer(userAnswer) {
+      let that = this;
+
+	  this.addDoneAnswer(pairs[this.i], userAnswer);
+
+      this.i = this.i + 1;
+      setTimeout(function() {
+        that.components.questionForm.ask(pairs[that.i], that);
+      }, 2000);
+    }
+
+	addDoneAnswer(pair, userAnswer) {
+		console.log(userAnswer);
+		if (userAnswer == pair['en']) {
+			this.answersDiv.insertAdjacentHTML(
+				'afterbegin',
+				"<div class=\"answer\">" +
+				"<div class=\"answer__ru\">" + pair['ru'] + "</div>" +
+				"<div class=\"answer__en answer__en--green\">" + pair['en'] + "</div>" +
+				"</div>"
+			);
+		} else {
+			this.answersDiv.insertAdjacentHTML(
+				'afterbegin',
+				"<div class=\"answer\">" +
+				"<div class=\"answer__ru\">" + pair['ru'] + "</div>" +
+				"<div class=\"answer__en answer__en--red\">" + pair['en'] + "</div>" +
+								"<div class=\"Answer__Wrong\">" + userAnswer + "</div" +
+				"</div>"
+			);
+		}
+	}
+}
+
+class QuestionForm {
+
+
+	constructor() {
+		this.pair = {'ru' : 'ERROR!', 'en': 'ERROR!!!' };
+		this.successDiv = document.querySelector('.js-answer-success');
+		this.failDiv = document.querySelector('.js-answer-fail');
+
+		let answerInput = document.querySelector('.js-answer-input');
+		let correctAnswer = document.querySelector('.js-correct-answer');
+
+		let that = this;
+		document.querySelector('.js-answer-form').addEventListener("submit", function(event) {
+    		event.preventDefault();
+    		if (that.pair['en'] == answerInput.value) {
+    			console.log('Совпало!');
+    			that.successDiv.style.display = 'block';
+    			that.failDiv.style.display = 'none';
+    		} else {
+    			console.log('Не Совпало!');
+    			correctAnswer.innerHTML = that.pair['en'];
+    			that.failDiv.style.display = 'block';
+    			that.successDiv.style.display = 'none';
+    		}
+          
+            that.app.afterAnswer.call(app, answerInput.value);
+			
+         
+  		});
+	}
+
+	onAnswer() {
+		// @todo
+	}
+
+	ask(pair, app) {
+        console.log('ask!', pair)
+		this.pair = pair;
+        this.app = app;
+		this.successDiv.style.display = 'none';
+		this.failDiv.style.display = 'none';
+		let question = document.querySelector('.question-answer__question');
+		question.innerHTML = pair['ru'];
+        let input = document.querySelector('.js-answer-input');
+        input.value = "";
+	}
+
+}
+
+class Answers {
+	
+}
+
+
+
+let app = new BoosterApp(
+	{
+		'questionForm' : new QuestionForm('js-question-form'),
+		'answers' : new Answers('js-answers')
+	}
+);
+app.run();
+</script>
+</body>
+</html>
